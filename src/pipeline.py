@@ -3,7 +3,7 @@ from src.retrieval.retriever import retrieve_context
 from src.generation.generator import generate_answer
 
 
-def answer_question(question: str) -> dict:
+def answer_question(question: str, language: str = "English") -> dict:
     """Retrieve legal passages and generate a grounded answer."""
 
     if not question or not question.strip():
@@ -27,7 +27,7 @@ def answer_question(question: str) -> dict:
                 "status": "no_context",
             }
 
-        answer = generate_answer(question, context)
+        answer = generate_answer(question, context, language)
 
         return {
             "answer": answer,

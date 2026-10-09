@@ -280,19 +280,21 @@ if "queued_question" not in st.session_state:
 
 # ==================== HELPERS ====================
 
-def ask(question: str) -> None:
+def ask(question: str, language: str = "English") -> None:
     try:
         from src.pipeline import answer_question
 
         with st.spinner("Preparing your explanation..."):
-            result = answer_question(question)
+            result = answer_question(question, language)
 
         answer = result.get("answer", "No answer was returned. Please try again.")
         sources = result.get("sources", [])
 
-    except Exception as e:
-        print(f"JurisAI error: {type(e).__name__}: {e}")
-        answer = f"Backend error: {type(e).__name__}: {e}"
+    except Exception:
+        answer = (
+            "The backend is not ready or could not process your question. "
+            "Please check that the retrieval and generation modules are available."
+        )
         sources = []
 
     st.session_state.history.append(
@@ -323,6 +325,54 @@ def render_answer(item: dict) -> None:
 
 def short(text: str, n: int = 44) -> str:
     return text if len(text) <= n else text[: n - 1].rstrip() + "…"
+
+
+def suggest_followups(question: str) -> list[str]:
+    """Return procedural follow-up questions based on the current topic."""
+    q = question.lower()
+
+    if "summons" in q:
+        return [
+            "What happens after a summons is received?",
+            "How is a summons different from a warrant?",
+            "What does appearing before a court mean?",
+        ]
+    if "hearing" in q:
+        return [
+            "What usually happens after a hearing?",
+            "What is an adjournment?",
+            "What are the different stages of a court case?",
+        ]
+    if "filing" in q or "file a case" in q:
+        return [
+            "What happens after a case is filed?",
+            "What is a court notice?",
+            "What happens during the first hearing?",
+        ]
+    if "stage" in q or "process" in q or "procedure" in q:
+        return [
+            "What happens during a court hearing?",
+            "What is a summons?",
+            "What can happen after a hearing?",
+        ]
+    return [
+        "What are the different stages of a court case?",
+        "What happens during a court hearing?",
+        "What is a summons?",
+    ]
+
+
+def render_followups(item: dict) -> None:
+    """Render clickable follow-up questions with the existing button styling."""
+    st.markdown("**Suggested questions**")
+    for i, followup in enumerate(suggest_followups(item["question"])):
+        if st.button(
+            followup,
+            key=f"followup_{st.session_state.view_idx}_{i}",
+            use_container_width=True,
+        ):
+            st.session_state.queued_question = followup
+            st.rerun()
 
 
 # ==================== BRAND BAR ====================
@@ -366,6 +416,7 @@ with hero_logo:
 st.write("")
 
 with st.form("question_form", clear_on_submit=True):
+    
     question = st.text_input(
         "Your question",
         placeholder="Ask anything about court procedures...",
@@ -381,7 +432,10 @@ elif st.session_state.queued_question:
     st.session_state.queued_question = ""
 
 if to_ask:
-    ask(to_ask)
+    ask(
+        to_ask,
+        st.session_state.get("response_language", "English"),
+    )
 
 
 # ==================== ANSWER (just below the box) / SUGGESTIONS ====================
@@ -393,6 +447,7 @@ history = st.session_state.history
 
 if view_idx is not None and 0 <= view_idx < len(history):
     render_answer(history[view_idx])
+    render_followups(history[view_idx])
 
 else:
     st.markdown(
