@@ -1,4 +1,4 @@
-"""Public retrieval interface used by src.pipeline.answer_question."""
+
 import json
 from pathlib import Path
 import faiss

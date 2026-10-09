@@ -1,4 +1,4 @@
-"""Run from repository root: python scripts/build_index.py"""
+
 import json
 from pathlib import Path
 import faiss
