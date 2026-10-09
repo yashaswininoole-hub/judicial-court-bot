@@ -1,1 +1,8 @@
 streamlit
+ollama
+pymupdf
+sentence-transformers
+faiss-cpu
+numpy
+langchain-text-splitters
+pytest
