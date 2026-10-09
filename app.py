@@ -290,11 +290,9 @@ def ask(question: str) -> None:
         answer = result.get("answer", "No answer was returned. Please try again.")
         sources = result.get("sources", [])
 
-    except Exception:
-        answer = (
-            "The backend is not ready or could not process your question. "
-            "Please check that the retrieval and generation modules are available."
-        )
+    except Exception as e:
+        print(f"JurisAI error: {type(e).__name__}: {e}")
+        answer = f"Backend error: {type(e).__name__}: {e}"
         sources = []
 
     st.session_state.history.append(
@@ -333,13 +331,6 @@ header_left, header_right = st.columns([1, 1])
 
 with header_left:
     st.markdown('<div class="brand">Juris<span>AI</span></div>', unsafe_allow_html=True)
-
-with header_right:
-    st.markdown(
-        '<div style="text-align:right;color:#747B87;font-size:0.82rem;padding-top:5px;">'
-        'JUDICIAL PROCESS EXPLAINER</div>',
-        unsafe_allow_html=True,
-    )
 
 
 # ==================== HERO (text left, logo right) ====================
